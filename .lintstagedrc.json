@@ -1,0 +1,8 @@
+{
+  "frontend/src/**/*.{ts,tsx}": [
+    "npm run lint:fix --workspace=frontend"
+  ],
+  "backend/src/**/*.ts": [
+    "npm run lint:fix --workspace=backend"
+  ]
+} 
