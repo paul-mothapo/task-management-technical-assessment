@@ -7,8 +7,11 @@ import {
   Clock, 
   ListTodo,
   AlertCircle,
-  PlusIcon
+  PlusIcon,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface SideBarProps {
   tasks: Task[];
@@ -20,6 +23,7 @@ interface SideBarProps {
 // @sidebar
 export const SideBar = ({ tasks, activeStatus, onStatusFilter, onAddNewTask }: SideBarProps) => {
   const { user, logout } = useAuth();
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const navigationItems = [
     { 
@@ -49,9 +53,19 @@ export const SideBar = ({ tasks, activeStatus, onStatusFilter, onAddNewTask }: S
   ];
 
   return (
-    <div className="w-64 bg-white flex flex-col">
-      <div className="p-6 border-b">
-        <h1 className="text-xl font-bold text-gray-800">Task Manager</h1>
+    <div className={`${isExpanded ? 'w-64' : 'w-20'} bg-white flex flex-col transition-all duration-300 relative`}>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="absolute -right-3 top-6 bg-white rounded-full p-1 shadow-md border hover:bg-gray-50"
+      >
+        {isExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+      </button>
+
+      <div className="p-6 border-b flex items-center">
+        <h1 className={`text-xl font-bold text-gray-800 truncate ${!isExpanded && 'scale-0 w-0'}`}>
+          Task Manager
+        </h1>
+        {!isExpanded && <ListTodo className="mx-auto" size={24} />}
       </div>
 
       <div className="flex-grow p-4">
@@ -60,19 +74,22 @@ export const SideBar = ({ tasks, activeStatus, onStatusFilter, onAddNewTask }: S
             <button
               key={item.status}
               onClick={() => onStatusFilter(item.status as Task['status'] | 'all')}
-              className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors duration-200 ${
+              className={`w-full flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-4 py-2 text-sm transition-colors duration-200 ${
                 activeStatus === item.status
                   ? 'bg-neutral-900 text-white'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
+              title={!isExpanded ? item.label : undefined}
             >
               <div className="flex items-center space-x-3">
                 <item.icon size={18} />
-                <span>{item.label}</span>
+                {isExpanded && <span>{item.label}</span>}
               </div>
-              <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-                {item.count}
-              </span>
+              {isExpanded && (
+                <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                  {item.count}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -80,31 +97,35 @@ export const SideBar = ({ tasks, activeStatus, onStatusFilter, onAddNewTask }: S
         <div className="mt-8">
           <button
             onClick={onAddNewTask}
-            className="w-full flex items-center justify-center space-x-2 bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 transition-colors duration-200"
+            className={`w-full flex items-center ${isExpanded ? 'justify-center space-x-2' : 'justify-center'} bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 transition-colors duration-200`}
+            title={!isExpanded ? 'Add New Task' : undefined}
           >
             <PlusIcon className="w-5 h-5" />
-            <span>Add New Task</span>
+            {isExpanded && <span>Add New Task</span>}
           </button>
         </div>
       </div>
 
       <div className="border-t p-4">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white">
+        <div className={`flex items-center ${isExpanded ? 'space-x-3' : 'justify-center'} mb-4`}>
+          <div className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white flex-shrink-0">
             <User size={20} />
           </div>
-          <div className="flex-grow">
-            <h3 className="font-medium text-gray-900">{user?.name}</h3>
-            <p className="text-sm text-gray-500">{user?.email}</p>
-          </div>
+          {isExpanded && (
+            <div className="flex-grow">
+              <h3 className="font-medium text-gray-900 truncate">{user?.name}</h3>
+              <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100"
+            className={`w-full flex items-center ${isExpanded ? 'justify-center space-x-2' : 'justify-center'} px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100`}
+            title={!isExpanded ? 'Logout' : undefined}
           >
             <LogOut size={16} />
-            <span>Logout</span>
+            {isExpanded && <span>Logout</span>}
           </button>
         </div>
       </div>

@@ -69,7 +69,8 @@ export class TaskModel {
     }
   }
 
-  static async findAllByUser(userId: number, options: FindAllOptions = {}): Promise<Task[]> {
+  static async findAllByUser(userId: number, options: FindAllOptions = {}): Promise<{ tasks: Task[], total: number }> {
+    console.log('Finding tasks with options:', options);
     
     const values: (number | string)[] = [userId];
     let valueCounter = 1;
@@ -96,7 +97,7 @@ export class TaskModel {
     // @build ORDER BY clause
     let orderByClause = 'ORDER BY ';
     if (options.sortBy === 'priority') {
-        // @custom priority order: high -> medium -> low
+      // @custom priority order: high -> medium -> low
       orderByClause += `
         CASE priority 
           WHEN 'high' THEN 1 
@@ -109,13 +110,28 @@ export class TaskModel {
       orderByClause += `created_at ${options.sortOrder === 'asc' ? 'ASC' : 'DESC'}`;
     }
 
+    // @get total count
+    const countQuery = `
+      SELECT COUNT(*) as total 
+      FROM tasks 
+      ${whereClause}
+    `;
+    const countResult = await pool.query(countQuery, values);
+    const total = parseInt(countResult.rows[0].total);
+
+    // @get all results without pagination for now
     const query = `
       SELECT * FROM tasks 
       ${whereClause}
       ${orderByClause}
     `;
+
     const result = await pool.query(query, values);
-    return result.rows;
+
+    return {
+      tasks: result.rows,
+      total
+    };
   }
 
   static async update(taskId: number, userId: number, updates: UpdateTaskRequest): Promise<Task | null> {

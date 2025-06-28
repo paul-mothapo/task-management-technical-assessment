@@ -1,6 +1,6 @@
-export const formatDate = (dateString: string): string => {
+export const formatDate = (inputDateString: string, format: 'short' | 'medium' | 'long' = 'medium'): string => {
   try {
-    const date = new Date(dateString);
+    const date: Date = new Date(inputDateString);
     
     if (isNaN(date.getTime())) {
       return 'Invalid date';
@@ -11,25 +11,34 @@ export const formatDate = (dateString: string): string => {
     yesterday.setDate(yesterday.getDate() - 1);
 
     const timeString = date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+      hour: format === 'short' ? 'numeric' : 'numeric',
       minute: '2-digit',
       hour12: true 
     });
 
     if (date.toDateString() === today.toDateString()) {
-      return `${timeString}`;
+      return format === 'long' ? `Today at ${timeString}` : timeString;
     }
 
     if (date.toDateString() === yesterday.toDateString()) {
-      return `${timeString}`;
+      return format === 'long' ? `Yesterday at ${timeString}` : timeString;
     }
 
-    return `${date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    const dateFormatOptions: Intl.DateTimeFormatOptions = {
+      month: format === 'short' ? 'numeric' : 'short',
       day: 'numeric',
       year: today.getFullYear() !== date.getFullYear() ? 'numeric' : undefined
-    })} at ${timeString}`;
+    };
+
+    const formattedDate = date.toLocaleDateString('en-US', dateFormatOptions);
+    return format === 'short' ? formattedDate : `${formattedDate} at ${timeString}`;
   } catch (error) {
     return 'Invalid date';
   }
+};
+
+export const getResponsiveTimeFormat = (screenWidth: number): 'short' | 'medium' | 'long' => {
+  if (screenWidth < 640) return 'short';
+  if (screenWidth < 1024) return 'medium';
+  return 'long';
 }; 

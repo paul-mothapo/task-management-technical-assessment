@@ -67,4 +67,13 @@ export interface TaskFilters {
   sortBy?: SortBy;
   sortOrder?: SortOrder;
   dateRange?: DateRange;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
 } 

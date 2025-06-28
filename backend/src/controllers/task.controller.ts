@@ -10,9 +10,11 @@ export class TaskController {
         return res.status(API_STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.USER_NOT_FOUND });
       }
 
-      const { status, priority, sortBy, sortOrder, dateRange } = req.query;
+      const { status, priority, sortBy, sortOrder, dateRange, page, limit } = req.query;
+      const pageNum = page ? parseInt(page as string) : 1;
+      const limitNum = limit ? parseInt(limit as string) : 6;
       
-      const tasks = await TaskModel.findAllByUser(userId, {
+      const result = await TaskModel.findAllByUser(userId, {
         status: status as string,
         priority: priority as string,
         sortBy: sortBy as 'createdAt' | 'priority',
@@ -20,8 +22,19 @@ export class TaskController {
         dateRange: dateRange as string
       });
 
-      res.json({ tasks });
+      // @handle pagination in memory
+      const startIndex = (pageNum - 1) * limitNum;
+      const endIndex = startIndex + limitNum;
+      const paginatedTasks = result.tasks.slice(startIndex, endIndex);
+
+      res.json({
+        tasks: paginatedTasks,
+        total: result.total,
+        page: pageNum,
+        limit: limitNum
+      });
     } catch (error) {
+      console.error('Error in getTasks:', error);
       res.status(API_STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: MESSAGES.TASK_NOT_FOUND });
     }
   }
