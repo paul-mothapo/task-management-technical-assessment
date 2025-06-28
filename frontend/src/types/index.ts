@@ -7,23 +7,31 @@ export interface User {
 export enum TaskStatus {
   PENDING = 'pending',
   IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed'
+  COMPLETED = 'completed',
 }
 
 export enum TaskPriority {
   LOW = 'low',
   MEDIUM = 'medium',
-  HIGH = 'high'
+  HIGH = 'high',
 }
 
 export enum SortBy {
   PRIORITY = 'priority',
-  CREATED_AT = 'createdAt'
+  CREATED_AT = 'createdAt',
+  DUE_DATE = 'dueDate',
 }
 
 export enum SortOrder {
   ASC = 'asc',
-  DESC = 'desc'
+  DESC = 'desc',
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  user_id: number;
+  created_at: string;
 }
 
 export interface Task {
@@ -32,6 +40,8 @@ export interface Task {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
+  due_date?: string;
+  categories: Category[];
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -53,7 +63,7 @@ export interface RegisterCredentials extends LoginCredentials {
   name: string;
 }
 
-export type DateRange = 
+export type DateRange =
   | 'today'
   | 'yesterday'
   | 'this_week'
@@ -76,4 +86,4 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   limit: number;
-} 
+}

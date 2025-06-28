@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Task } from '@/types';
-import { Clock } from 'lucide-react';
+import { Clock, Calendar } from 'lucide-react';
 import { PRIORITY_COLORS, STATUS_COLORS } from '@/constants/cardConstants';
 import { formatDate, getResponsiveTimeFormat } from './utils';
 import { TaskBadge } from './TaskBadge';
@@ -15,12 +15,7 @@ interface TaskCardProps {
   viewMode: ViewMode;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ 
-  task, 
-  onEdit, 
-  onDelete, 
-  viewMode 
-}) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, viewMode }) => {
   const isListView = viewMode === 'list';
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   const isSmallScreen = screenWidth < 640;
@@ -47,23 +42,47 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     <div className="flex items-center">
       <Clock size={size === 'sm' ? 10 : 12} className="mr-1" />
       <span className={size === 'sm' ? 'text-[10px]' : 'text-xs'}>
-        {screenWidth >= 640 && `${label}: `}{formatDate(timestamp, timeFormat)}
+        {screenWidth >= 640 && `${label}: `}
+        {formatDate(timestamp, timeFormat)}
       </span>
     </div>
   );
 
+  const renderDueDate = () => {
+    if (!task.due_date) return null;
+    return (
+      <div className="flex items-center">
+        <Calendar size={size === 'sm' ? 10 : 12} className="mr-1" />
+        <span
+          className={
+            size === 'sm'
+              ? 'text-[10px] text-green-800 font-semibold'
+              : 'text-xs text-green-800 font-semibold'
+          }
+        >
+          {formatDate(task.due_date, 'date-only')}
+        </span>
+      </div>
+    );
+  };
+
   const renderBadges = () => (
-    <div className="flex gap-1 sm:gap-2">
-      <TaskBadge
-        label={task.status}
-        colorClasses={STATUS_COLORS[task.status]}
-        size={size}
-      />
+    <div className="flex flex-wrap gap-1 sm:gap-2">
+      <TaskBadge label={task.status} colorClasses={STATUS_COLORS[task.status]} size={size} />
       <TaskBadge
         label={task.priority}
         colorClasses={PRIORITY_COLORS[task.priority]}
         size={size}
+        showIndicator={true}
       />
+      {task.categories?.map(category => (
+        <TaskBadge
+          key={category.id}
+          label={category.name}
+          colorClasses="bg-gray-100 text-gray-800 border border-gray-300"
+          size={size}
+        />
+      ))}
     </div>
   );
 
@@ -95,7 +114,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </h3>
           {!isSmallScreen && renderActions()}
         </div>
-        
+
         {isSmallScreen ? (
           <div className="mt-2 flex items-center justify-between">
             {renderBadges()}
@@ -104,18 +123,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         ) : (
           <div className="mt-2 flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <p className="text-gray-600 line-clamp-2 mb-2">
-                {task.description}
-              </p>
+              <p className="text-gray-600 line-clamp-2 mb-2">{task.description}</p>
               <div className="flex flex-col space-y-1 text-gray-500">
                 {renderTimestamp('Created', task.created_at)}
-                {task.updated_at !== task.created_at && 
-                  renderTimestamp('Updated', task.updated_at)}
+                {task.updated_at !== task.created_at && renderTimestamp('Updated', task.updated_at)}
+                {renderDueDate()}
               </div>
             </div>
-            <div className="ml-4">
-              {renderBadges()}
-            </div>
+            <div className="ml-4">{renderBadges()}</div>
           </div>
         )}
       </div>
@@ -128,13 +143,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <h3 className={`font-semibold truncate ${size === 'sm' ? 'text-base' : 'text-lg'} mb-2`}>
           {task.title}
         </h3>
-        <p className="text-gray-600 line-clamp-2 mb-4">
-          {task.description}
-        </p>
+        <p className="text-gray-600 line-clamp-2 mb-4">{task.description}</p>
         <div className="flex flex-col space-y-1 text-gray-500 mt-2">
           {renderTimestamp('Created', task.created_at)}
-          {task.updated_at !== task.created_at && 
-            renderTimestamp('Updated', task.updated_at)}
+          {task.updated_at !== task.created_at && renderTimestamp('Updated', task.updated_at)}
+          {renderDueDate()}
         </div>
       </div>
       <div className="flex items-center justify-between mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-neutral-100">

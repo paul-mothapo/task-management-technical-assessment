@@ -36,4 +36,12 @@ export const MESSAGES = {
   INVALID_EMAIL_FORMAT: 'Invalid email format',
   UNAUTHORIZED: 'Unauthorized',
   INTERNAL_SERVER_ERROR: 'Internal server error',
+  CATEGORY_CREATED: 'Category created successfully',
+  CATEGORY_UPDATED: 'Category updated successfully',
+  CATEGORY_DELETED: 'Category deleted successfully',
+  CATEGORY_NOT_FOUND: 'Category not found',
+  INVALID_CATEGORY_ID: 'Invalid category ID',
+  CATEGORY_NAME_REQUIRED: 'Category name is required',
+  CATEGORY_NAME_TOO_LONG: 'Category name is too long',
+  CATEGORY_ALREADY_EXISTS: 'Category already exists',
 } as const;

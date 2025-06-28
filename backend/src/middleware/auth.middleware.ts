@@ -4,6 +4,7 @@ import { JWTPayload } from '../types';
 import { API_STATUS_CODES, MESSAGES } from '../constants/apiResponses';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: JWTPayload;

@@ -49,6 +49,13 @@ export const validateCreateTask = (req: Request, res: Response, next: NextFuncti
     return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid task priority' });
   }
 
+  if (task.due_date) {
+    const dueDate = new Date(task.due_date);
+    if (isNaN(dueDate.getTime())) {
+      return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid due date format' });
+    }
+  }
+
   next();
 };
 
@@ -65,6 +72,41 @@ export const validateUpdateTask = (req: Request, res: Response, next: NextFuncti
 
   if (updates.priority && !['low', 'medium', 'high'].includes(updates.priority)) {
     return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid task priority' });
+  }
+
+  if (updates.due_date) {
+    const dueDate = new Date(updates.due_date);
+    if (isNaN(dueDate.getTime())) {
+      return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid due date format' });
+    }
+  }
+
+  next();
+};
+
+export const validateCreateCategory = (req: Request, res: Response, next: NextFunction) => {
+  const { name } = req.body;
+
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Category name is required' });
+  }
+
+  if (name.length > 50) {
+    return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Category name is too long' });
+  }
+
+  next();
+};
+
+export const validateUpdateCategory = (req: Request, res: Response, next: NextFunction) => {
+  const { name } = req.body;
+
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Category name is required' });
+  }
+
+  if (name.length > 50) {
+    return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Category name is too long' });
   }
 
   next();

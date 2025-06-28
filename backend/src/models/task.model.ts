@@ -1,29 +1,73 @@
-import pool from '../utils/database';
-import { Task, CreateTaskRequest, UpdateTaskRequest } from '../types';
+import pool, { sqlSanitizer } from '../utils/database';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { Task, CreateTaskRequest, UpdateTaskRequest, Category } from '../types';
 
 interface FindAllOptions {
   status?: string;
   priority?: string;
-  sortBy?: 'createdAt' | 'priority';
+  sortBy?: 'createdAt' | 'priority' | 'dueDate';
   sortOrder?: 'asc' | 'desc';
   dateRange?: string;
 }
 
 export class TaskModel {
   static async create(userId: number, task: CreateTaskRequest): Promise<Task> {
-    const result = await pool.query(
-      `INSERT INTO tasks (title, description, status, priority, user_id) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [task.title, task.description, task.status || 'pending', task.priority || 'medium', userId]
-    );
-    return result.rows[0];
+    const client = await pool.connect();
+    let createdTask: Task;
+    try {
+      await client.query('BEGIN');
+
+      // Insert task
+      const taskResult = await client.query(
+        `INSERT INTO tasks (title, description, status, priority, due_date, user_id) 
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [
+          task.title,
+          task.description,
+          task.status || 'pending',
+          task.priority || 'medium',
+          task.due_date ? new Date(task.due_date) : null,
+          userId,
+        ]
+      );
+
+      const newTask = taskResult.rows[0];
+
+      // Add categories if provided
+      if (task.category_ids && task.category_ids.length > 0) {
+        const values = task.category_ids.map((_, i) => `($1, $${i + 2})`).join(', ');
+        await client.query(`INSERT INTO task_categories (task_id, category_id) VALUES ${values}`, [
+          newTask.id,
+          ...task.category_ids,
+        ]);
+      }
+
+      await client.query('COMMIT');
+
+      // Fetch task with categories
+      const fetchedTask = await this.findById(newTask.id, userId);
+      if (!fetchedTask) throw new Error('Failed to fetch created task');
+      createdTask = fetchedTask;
+      return createdTask;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   static async findById(taskId: number, userId: number): Promise<Task | null> {
-    const result = await pool.query('SELECT * FROM tasks WHERE id = $1 AND user_id = $2', [
-      taskId,
-      userId,
-    ]);
+    const result = await pool.query(
+      `SELECT t.*, 
+              COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as categories
+       FROM tasks t
+       LEFT JOIN task_categories tc ON t.id = tc.task_id
+       LEFT JOIN categories c ON tc.category_id = c.id
+       WHERE t.id = $1 AND t.user_id = $2
+       GROUP BY t.id`,
+      [taskId, userId]
+    );
     return result.rows[0] || null;
   }
 
@@ -67,21 +111,22 @@ export class TaskModel {
     userId: number,
     options: FindAllOptions = {}
   ): Promise<{ tasks: Task[]; total: number }> {
-    console.log('Finding tasks with options:', options);
-
     const values: (number | string)[] = [userId];
     let valueCounter = 1;
 
+    // Sanitize userId
+    sqlSanitizer.sanitizeNumber(userId);
+
     // @build WHERE clause
-    let whereClause = 'WHERE user_id = $1';
+    let whereClause = 'WHERE t.user_id = $1';
     if (options.status) {
       valueCounter++;
-      whereClause += ` AND status = $${valueCounter}`;
+      whereClause += ` AND t.status = $${valueCounter}`;
       values.push(options.status);
     }
     if (options.priority) {
       valueCounter++;
-      whereClause += ` AND priority = $${valueCounter}`;
+      whereClause += ` AND t.priority = $${valueCounter}`;
       values.push(options.priority);
     }
     if (options.dateRange) {
@@ -91,35 +136,49 @@ export class TaskModel {
       }
     }
 
-    // @build ORDER BY clause
-    let orderByClause = 'ORDER BY ';
+    // @build ORDER BY clause with sanitization
+    let orderByClause = '';
     if (options.sortBy === 'priority') {
-      // @custom priority order: high -> medium -> low
-      orderByClause += `
-        CASE priority 
+      const orderDir = options.sortOrder
+        ? sqlSanitizer.sanitizeOrderDirection(options.sortOrder)
+        : 'DESC';
+      orderByClause = `
+        ORDER BY
+        CASE t.priority 
           WHEN 'high' THEN 1 
           WHEN 'medium' THEN 2 
           WHEN 'low' THEN 3 
-        END ${options.sortOrder === 'asc' ? 'DESC' : 'ASC'}, 
-        created_at DESC`;
+        END ${orderDir === 'ASC' ? 'DESC' : 'ASC'}`;
+    } else if (options.sortBy === 'dueDate') {
+      const orderDir = options.sortOrder
+        ? sqlSanitizer.sanitizeOrderDirection(options.sortOrder)
+        : 'DESC';
+      orderByClause = `ORDER BY t.due_date ${orderDir} NULLS LAST`;
     } else {
-      // @default sort by created_at
-      orderByClause += `created_at ${options.sortOrder === 'asc' ? 'ASC' : 'DESC'}`;
+      const orderDir = options.sortOrder
+        ? sqlSanitizer.sanitizeOrderDirection(options.sortOrder)
+        : 'DESC';
+      orderByClause = `ORDER BY t.created_at ${orderDir}`;
     }
 
     // @get total count
     const countQuery = `
       SELECT COUNT(*) as total 
-      FROM tasks 
+      FROM tasks t
       ${whereClause}
     `;
     const countResult = await pool.query(countQuery, values);
     const total = parseInt(countResult.rows[0].total);
 
-    // @get all results without pagination for now
+    // @get tasks with categories
     const query = `
-      SELECT * FROM tasks 
+      SELECT t.*, 
+             COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as categories
+      FROM tasks t
+      LEFT JOIN task_categories tc ON t.id = tc.task_id
+      LEFT JOIN categories c ON tc.category_id = c.id
       ${whereClause}
+      GROUP BY t.id
       ${orderByClause}
     `;
 
@@ -136,48 +195,81 @@ export class TaskModel {
     userId: number,
     updates: UpdateTaskRequest
   ): Promise<Task | null> {
-    const existingTask = await this.findById(taskId, userId);
-    if (!existingTask) return null;
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const updateFields = [];
-    const values = [];
-    let valueCounter = 1;
+      const existingTask = await this.findById(taskId, userId);
+      if (!existingTask) return null;
 
-    if (updates.title !== undefined) {
-      updateFields.push(`title = $${valueCounter}`);
-      values.push(updates.title);
-      valueCounter++;
+      const updateFields = [];
+      const values = [];
+      let valueCounter = 1;
+
+      if (updates.title !== undefined) {
+        updateFields.push(`title = $${valueCounter}`);
+        values.push(updates.title);
+        valueCounter++;
+      }
+      if (updates.description !== undefined) {
+        updateFields.push(`description = $${valueCounter}`);
+        values.push(updates.description);
+        valueCounter++;
+      }
+      if (updates.status !== undefined) {
+        updateFields.push(`status = $${valueCounter}`);
+        values.push(updates.status);
+        valueCounter++;
+      }
+      if (updates.priority !== undefined) {
+        updateFields.push(`priority = $${valueCounter}`);
+        values.push(updates.priority);
+        valueCounter++;
+      }
+      if (updates.due_date !== undefined) {
+        updateFields.push(`due_date = $${valueCounter}`);
+        values.push(updates.due_date ? new Date(updates.due_date) : null);
+        valueCounter++;
+      }
+
+      updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+      if (updateFields.length > 0) {
+        values.push(taskId, userId);
+        const query = `
+          UPDATE tasks 
+          SET ${updateFields.join(', ')}
+          WHERE id = $${valueCounter} AND user_id = $${valueCounter + 1}
+          RETURNING *
+        `;
+        await client.query(query, values);
+      }
+
+      // Update categories if provided
+      if (updates.category_ids !== undefined) {
+        // Remove existing categories
+        await client.query('DELETE FROM task_categories WHERE task_id = $1', [taskId]);
+
+        // Add new categories
+        if (updates.category_ids.length > 0) {
+          const values = updates.category_ids.map((_, i) => `($1, $${i + 2})`).join(', ');
+          await client.query(
+            `INSERT INTO task_categories (task_id, category_id) VALUES ${values}`,
+            [taskId, ...updates.category_ids]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+
+      // Fetch updated task with categories
+      return this.findById(taskId, userId);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-    if (updates.description !== undefined) {
-      updateFields.push(`description = $${valueCounter}`);
-      values.push(updates.description);
-      valueCounter++;
-    }
-    if (updates.status !== undefined) {
-      updateFields.push(`status = $${valueCounter}`);
-      values.push(updates.status);
-      valueCounter++;
-    }
-    if (updates.priority !== undefined) {
-      updateFields.push(`priority = $${valueCounter}`);
-      values.push(updates.priority);
-      valueCounter++;
-    }
-
-    updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-
-    if (updateFields.length === 0) return existingTask;
-
-    values.push(taskId, userId);
-    const query = `
-      UPDATE tasks 
-      SET ${updateFields.join(', ')}
-      WHERE id = $${valueCounter} AND user_id = $${valueCounter + 1}
-      RETURNING *
-    `;
-
-    const result = await pool.query(query, values);
-    return result.rows[0];
   }
 
   static async delete(taskId: number, userId: number): Promise<boolean> {
@@ -186,5 +278,25 @@ export class TaskModel {
       [taskId, userId]
     );
     return (result.rowCount ?? 0) > 0;
+  }
+
+  static async findDueTasksForReminders(): Promise<Task[]> {
+    const result = await pool.query(
+      `SELECT t.*, 
+              COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as categories
+       FROM tasks t
+       LEFT JOIN task_categories tc ON t.id = tc.task_id
+       LEFT JOIN categories c ON tc.category_id = c.id
+       WHERE t.due_date IS NOT NULL 
+         AND t.due_date > CURRENT_TIMESTAMP 
+         AND t.due_date <= CURRENT_TIMESTAMP + INTERVAL '1 day'
+         AND t.reminder_sent = false
+       GROUP BY t.id`
+    );
+    return result.rows;
+  }
+
+  static async markReminderSent(taskId: number): Promise<void> {
+    await pool.query('UPDATE tasks SET reminder_sent = true WHERE id = $1', [taskId]);
   }
 }

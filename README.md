@@ -1,5 +1,8 @@
 # Full-Stack Technical Assessment
 
+### Task Management Interface
+![Task Management Interface Screenshot](docs/interface.png)
+
 ## Overview
 Build a simple **Task Management System** with user authentication and CRUD operations. This test evaluates your skills in modern web development using Node.js, Express, TypeScript, PostgreSQL, and React.
 

@@ -1,17 +1,19 @@
 import { Task } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  LogOut, 
-  User, 
-  CheckCircle2, 
-  Clock, 
+import {
+  LogOut,
+  User,
+  CheckCircle2,
+  Clock,
   ListTodo,
   AlertCircle,
   PlusIcon,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from './common/Button';
+import { cn } from '@/utils/cn';
 
 interface SideBarProps {
   tasks: Task[];
@@ -26,43 +28,51 @@ export const SideBar = ({ tasks, activeStatus, onStatusFilter, onAddNewTask }: S
   const [isExpanded, setIsExpanded] = useState(true);
 
   const navigationItems = [
-    { 
-      label: 'All Tasks', 
-      icon: ListTodo, 
+    {
+      label: 'All Tasks',
+      icon: ListTodo,
       status: 'all',
-      count: tasks.length 
+      count: tasks.length,
     },
-    { 
-      label: 'Pending', 
-      icon: Clock, 
+    {
+      label: 'Pending',
+      icon: Clock,
       status: 'pending',
-      count: tasks.filter(t => t.status === 'pending').length
+      count: tasks.filter(t => t.status === 'pending').length,
     },
-    { 
-      label: 'In Progress', 
-      icon: AlertCircle, 
+    {
+      label: 'In Progress',
+      icon: AlertCircle,
       status: 'in_progress',
-      count: tasks.filter(t => t.status === 'in_progress').length
+      count: tasks.filter(t => t.status === 'in_progress').length,
     },
-    { 
-      label: 'Completed', 
-      icon: CheckCircle2, 
+    {
+      label: 'Completed',
+      icon: CheckCircle2,
       status: 'completed',
-      count: tasks.filter(t => t.status === 'completed').length
-    }
+      count: tasks.filter(t => t.status === 'completed').length,
+    },
   ];
 
   return (
-    <div className={`${isExpanded ? 'w-64' : 'w-20'} bg-white flex flex-col transition-all duration-300 relative`}>
-      <button
+    <div
+      className={cn(
+        'bg-white flex flex-col transition-all duration-300 relative',
+        isExpanded ? 'w-64' : 'w-20'
+      )}
+    >
+      <Button
+        variant="ghost"
+        size="sm"
+        icon={isExpanded ? ChevronLeft : ChevronRight}
         onClick={() => setIsExpanded(!isExpanded)}
-        className="absolute -right-3 top-6 bg-white rounded-full p-1 shadow-md border hover:bg-gray-50"
-      >
-        {isExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-      </button>
+        className="absolute -right-3 top-6 !p-1 bg-white shadow-md border hover:bg-gray-50 rounded-full"
+      />
 
       <div className="p-6 border-b flex items-center">
-        <h1 className={`text-xl font-bold text-gray-800 truncate ${!isExpanded && 'scale-0 w-0'}`}>
+        <h1
+          className={cn('text-xl font-bold text-gray-800 truncate', !isExpanded && 'scale-0 w-0')}
+        >
           Task Manager
         </h1>
         {!isExpanded && <ListTodo className="mx-auto" size={24} />}
@@ -70,18 +80,18 @@ export const SideBar = ({ tasks, activeStatus, onStatusFilter, onAddNewTask }: S
 
       <div className="flex-grow p-4">
         <nav className="space-y-1">
-          {navigationItems.map((item) => (
-            <button
+          {navigationItems.map(item => (
+            <Button
               key={item.status}
+              variant={activeStatus === item.status ? 'primary' : 'ghost'}
               onClick={() => onStatusFilter(item.status as Task['status'] | 'all')}
-              className={`w-full flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} px-4 py-2 text-sm transition-colors duration-200 ${
-                activeStatus === item.status
-                  ? 'bg-neutral-900 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={cn(
+                'w-full !justify-between !px-4 !py-2',
+                !isExpanded && '!justify-center'
+              )}
               title={!isExpanded ? item.label : undefined}
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-3">
                 <item.icon size={18} />
                 {isExpanded && <span>{item.label}</span>}
               </div>
@@ -90,24 +100,25 @@ export const SideBar = ({ tasks, activeStatus, onStatusFilter, onAddNewTask }: S
                   {item.count}
                 </span>
               )}
-            </button>
+            </Button>
           ))}
         </nav>
 
         <div className="mt-8">
-          <button
+          <Button
+            variant="primary"
+            icon={PlusIcon}
             onClick={onAddNewTask}
-            className={`w-full flex items-center ${isExpanded ? 'justify-center space-x-2' : 'justify-center'} bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 transition-colors duration-200`}
+            className={cn('w-full', isExpanded ? 'gap-2' : '!justify-center')}
             title={!isExpanded ? 'Add New Task' : undefined}
           >
-            <PlusIcon className="w-5 h-5" />
-            {isExpanded && <span>Add New Task</span>}
-          </button>
+            {isExpanded && 'Add New Task'}
+          </Button>
         </div>
       </div>
 
       <div className="border-t p-4">
-        <div className={`flex items-center ${isExpanded ? 'space-x-3' : 'justify-center'} mb-4`}>
+        <div className={cn('flex items-center mb-4', isExpanded ? 'gap-3' : 'justify-center')}>
           <div className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white flex-shrink-0">
             <User size={20} />
           </div>
@@ -119,14 +130,15 @@ export const SideBar = ({ tasks, activeStatus, onStatusFilter, onAddNewTask }: S
           )}
         </div>
         <div className="space-y-2">
-          <button
+          <Button
+            variant="ghost"
+            icon={LogOut}
             onClick={logout}
-            className={`w-full flex items-center ${isExpanded ? 'justify-center space-x-2' : 'justify-center'} px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100`}
+            className={cn('w-full', isExpanded ? 'gap-2' : '!justify-center')}
             title={!isExpanded ? 'Logout' : undefined}
           >
-            <LogOut size={16} />
-            {isExpanded && <span>Logout</span>}
-          </button>
+            {isExpanded && 'Logout'}
+          </Button>
         </div>
       </div>
     </div>

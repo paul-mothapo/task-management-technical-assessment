@@ -6,13 +6,23 @@ export interface User {
   created_at: Date;
 }
 
+export interface Category {
+  id: number;
+  name: string;
+  user_id: number;
+  created_at: Date;
+}
+
 export interface Task {
   id: number;
   title: string;
   description?: string;
   status: 'pending' | 'in_progress' | 'completed';
   priority: 'low' | 'medium' | 'high';
+  due_date?: Date;
+  reminder_sent: boolean;
   user_id: number;
+  categories?: Category[];
   created_at: Date;
   updated_at: Date;
 }
@@ -38,6 +48,8 @@ export interface CreateTaskRequest {
   description?: string;
   status?: 'pending' | 'in_progress' | 'completed';
   priority?: 'low' | 'medium' | 'high';
+  due_date?: string;
+  category_ids?: number[];
 }
 
 export interface UpdateTaskRequest {
@@ -45,4 +57,14 @@ export interface UpdateTaskRequest {
   description?: string;
   status?: 'pending' | 'in_progress' | 'completed';
   priority?: 'low' | 'medium' | 'high';
+  due_date?: string | null;
+  category_ids?: number[];
+}
+
+export interface CreateCategoryRequest {
+  name: string;
+}
+
+export interface UpdateCategoryRequest {
+  name: string;
 }

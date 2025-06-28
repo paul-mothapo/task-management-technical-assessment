@@ -3,6 +3,8 @@ import { Task } from '@/types';
 import { TaskCard } from './TaskCard/index';
 import { ViewMode } from '@/hooks/useViewMode';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from './common/Button';
+import { cn } from '@/utils/cn';
 
 interface TaskListProps {
   tasks: Task[];
@@ -47,12 +49,12 @@ export const TaskList: React.FC<TaskListProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className={
-        viewMode === 'grid'
-          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          : "space-y-4"
-      }>
-        {tasks.map((task) => (
+      <div
+        className={cn(
+          viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'
+        )}
+      >
+        {tasks.map(task => (
           <TaskCard
             key={task.id}
             task={task}
@@ -64,38 +66,32 @@ export const TaskList: React.FC<TaskListProps> = ({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-4 mt-6">
-          <button
+        <div className="flex justify-center items-center gap-4 mt-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={ChevronLeft}
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className={`p-2 rounded-lg ${
-              currentPage === 1
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={cn('!p-2', currentPage === 1 && 'text-gray-400 cursor-not-allowed')}
             aria-label="Previous page"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          
-          <span className="text-sm text-gray-600">
+          />
+
+          <span className="text-sm text-gray-600 min-w-[100px] text-center">
             Page {currentPage} of {totalPages}
           </span>
 
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={ChevronRight}
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className={`p-2 rounded-lg ${
-              currentPage === totalPages
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+            className={cn('!p-2', currentPage === totalPages && 'text-gray-400 cursor-not-allowed')}
             aria-label="Next page"
-          >
-            <ChevronRight size={20} />
-          </button>
+          />
         </div>
       )}
     </div>
   );
-}; 
+};
