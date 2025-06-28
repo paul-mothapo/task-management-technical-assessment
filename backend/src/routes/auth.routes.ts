@@ -9,4 +9,4 @@ router.post('/register', validateRegister, AuthController.register);
 router.post('/login', validateLogin, AuthController.login);
 router.get('/profile', authMiddleware, AuthController.getProfile);
 
-export default router; 
+export default router;

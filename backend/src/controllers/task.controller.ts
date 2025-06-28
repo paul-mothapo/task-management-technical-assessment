@@ -13,13 +13,13 @@ export class TaskController {
       const { status, priority, sortBy, sortOrder, dateRange, page, limit } = req.query;
       const pageNum = page ? parseInt(page as string) : 1;
       const limitNum = limit ? parseInt(limit as string) : 6;
-      
+
       const result = await TaskModel.findAllByUser(userId, {
         status: status as string,
         priority: priority as string,
         sortBy: sortBy as 'createdAt' | 'priority',
         sortOrder: sortOrder as 'asc' | 'desc',
-        dateRange: dateRange as string
+        dateRange: dateRange as string,
       });
 
       // @handle pagination in memory
@@ -31,7 +31,7 @@ export class TaskController {
         tasks: paginatedTasks,
         total: result.total,
         page: pageNum,
-        limit: limitNum
+        limit: limitNum,
       });
     } catch (error) {
       console.error('Error in getTasks:', error);
@@ -49,7 +49,7 @@ export class TaskController {
       const task = await TaskModel.create(userId, req.body);
       res.status(API_STATUS_CODES.CREATED).json({
         message: MESSAGES.TASK_CREATED,
-        task
+        task,
       });
     } catch (error) {
       res.status(API_STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: MESSAGES.TASK_CREATED });
@@ -75,7 +75,7 @@ export class TaskController {
 
       res.json({
         message: MESSAGES.TASK_UPDATED,
-        task: updatedTask
+        task: updatedTask,
       });
     } catch (error) {
       res.status(API_STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: MESSAGES.TASK_UPDATED });
@@ -104,4 +104,4 @@ export class TaskController {
       res.status(API_STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: MESSAGES.TASK_DELETED });
     }
   }
-} 
+}

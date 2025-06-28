@@ -45,4 +45,4 @@ export interface UpdateTaskRequest {
   description?: string;
   status?: 'pending' | 'in_progress' | 'completed';
   priority?: 'low' | 'medium' | 'high';
-} 
+}

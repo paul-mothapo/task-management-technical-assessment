@@ -24,4 +24,4 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   } catch (error) {
     return res.status(API_STATUS_CODES.UNAUTHORIZED).json({ message: MESSAGES.INVALID_TOKEN });
   }
-}; 
+};

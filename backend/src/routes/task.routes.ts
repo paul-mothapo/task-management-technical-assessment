@@ -12,4 +12,4 @@ router.post('/', validateCreateTask, TaskController.createTask);
 router.put('/:id', validateUpdateTask, TaskController.updateTask);
 router.delete('/:id', TaskController.deleteTask);
 
-export default router; 
+export default router;

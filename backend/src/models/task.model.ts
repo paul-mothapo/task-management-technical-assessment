@@ -14,22 +14,16 @@ export class TaskModel {
     const result = await pool.query(
       `INSERT INTO tasks (title, description, status, priority, user_id) 
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [
-        task.title,
-        task.description,
-        task.status || 'pending',
-        task.priority || 'medium',
-        userId
-      ]
+      [task.title, task.description, task.status || 'pending', task.priority || 'medium', userId]
     );
     return result.rows[0];
   }
 
   static async findById(taskId: number, userId: number): Promise<Task | null> {
-    const result = await pool.query(
-      'SELECT * FROM tasks WHERE id = $1 AND user_id = $2',
-      [taskId, userId]
-    );
+    const result = await pool.query('SELECT * FROM tasks WHERE id = $1 AND user_id = $2', [
+      taskId,
+      userId,
+    ]);
     return result.rows[0] || null;
   }
 
@@ -38,40 +32,43 @@ export class TaskModel {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     switch (dateRange) {
       case 'today':
         return `DATE(created_at) = CURRENT_DATE`;
-      
+
       case 'yesterday':
         return `DATE(created_at) = CURRENT_DATE - INTERVAL '1 day'`;
-      
+
       case 'this_week':
         return `DATE_TRUNC('week', created_at) = DATE_TRUNC('week', CURRENT_DATE)`;
-      
+
       case 'last_week':
         return `
           DATE_TRUNC('week', created_at) = 
           DATE_TRUNC('week', CURRENT_DATE - INTERVAL '1 week')
         `;
-      
+
       case 'this_month':
         return `DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)`;
-      
+
       case 'last_month':
         return `
           DATE_TRUNC('month', created_at) = 
           DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
         `;
-      
+
       default:
         return '';
     }
   }
 
-  static async findAllByUser(userId: number, options: FindAllOptions = {}): Promise<{ tasks: Task[], total: number }> {
+  static async findAllByUser(
+    userId: number,
+    options: FindAllOptions = {}
+  ): Promise<{ tasks: Task[]; total: number }> {
     console.log('Finding tasks with options:', options);
-    
+
     const values: (number | string)[] = [userId];
     let valueCounter = 1;
 
@@ -130,11 +127,15 @@ export class TaskModel {
 
     return {
       tasks: result.rows,
-      total
+      total,
     };
   }
 
-  static async update(taskId: number, userId: number, updates: UpdateTaskRequest): Promise<Task | null> {
+  static async update(
+    taskId: number,
+    userId: number,
+    updates: UpdateTaskRequest
+  ): Promise<Task | null> {
     const existingTask = await this.findById(taskId, userId);
     if (!existingTask) return null;
 
@@ -186,4 +187,4 @@ export class TaskModel {
     );
     return (result.rowCount ?? 0) > 0;
   }
-} 
+}

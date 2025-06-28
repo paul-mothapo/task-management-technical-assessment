@@ -14,7 +14,9 @@ export const validateRegister = (req: Request, res: Response, next: NextFunction
   }
 
   if (password.length < 6) {
-    return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Password must be at least 6 characters long' });
+    return res
+      .status(API_STATUS_CODES.BAD_REQUEST)
+      .json({ message: 'Password must be at least 6 characters long' });
   }
 
   next();
@@ -24,7 +26,9 @@ export const validateLogin = (req: Request, res: Response, next: NextFunction) =
   const { email, password }: LoginRequest = req.body;
 
   if (!email || !password) {
-    return res.status(API_STATUS_CODES.BAD_REQUEST).json({ message: 'Email and password are required' });
+    return res
+      .status(API_STATUS_CODES.BAD_REQUEST)
+      .json({ message: 'Email and password are required' });
   }
 
   next();
@@ -64,4 +68,4 @@ export const validateUpdateTask = (req: Request, res: Response, next: NextFuncti
   }
 
   next();
-}; 
+};

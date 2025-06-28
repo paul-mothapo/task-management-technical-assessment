@@ -32,7 +32,7 @@ export const formatDate = (inputDateString: string, format: 'short' | 'medium' |
 
     const formattedDate = date.toLocaleDateString('en-US', dateFormatOptions);
     return format === 'short' ? formattedDate : `${formattedDate} at ${timeString}`;
-  } catch (error) {
+  } catch {
     return 'Invalid date';
   }
 };
