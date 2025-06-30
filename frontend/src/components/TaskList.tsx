@@ -40,7 +40,9 @@ export const TaskList: React.FC<TaskListProps> = ({
   if (tasks.length === 0) {
     return (
       <div className="text-center mt-8">
-        <p className="text-gray-500">No tasks found</p>
+        <p className="text-gray-500">
+          No tasks found. Start by creating your first task to get organized!
+        </p>
       </div>
     );
   }
