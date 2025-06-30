@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { RegisterCredentials } from "@/types";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
-import { FormInput } from "@/components/forms/FormInput";
-import { LoadingButton } from "@/components/common/LoadingButton";
-import { REGISTER_FORM, REGISTER_TEXTS } from "@/constants/formConstants";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { RegisterCredentials } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { FormInput } from '@/components/forms/FormInput';
+import { LoadingButton } from '@/components/common/LoadingButton';
+import { REGISTER_FORM, REGISTER_TEXTS } from '@/constants/formConstants';
 
 export const Register = () => {
   const {
@@ -23,7 +23,7 @@ export const Register = () => {
       setLoading(true);
       await registerUser(data);
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error('Registration error:', error);
     } finally {
       setLoading(false);
     }
@@ -34,15 +34,13 @@ export const Register = () => {
       <div className="flex flex-col items-center mt-20">
         <div className="w-full bg-white rounded-lg p-8 flex flex-col items-center">
           <h1 className="text-2xl font-bold mb-2">{REGISTER_TEXTS.TITLE}</h1>
-          <p className="text-gray-600 text-center mb-6">
-            {REGISTER_TEXTS.SUBTITLE}
-          </p>
+          <p className="text-gray-600 text-center mb-6">{REGISTER_TEXTS.SUBTITLE}</p>
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
             <div className="mb-4">
               <FormInput
                 type="text"
                 placeholder={REGISTER_TEXTS.NAME_PLACEHOLDER}
-                registration={register("name", REGISTER_FORM.NAME)}
+                registration={register('name', REGISTER_FORM.NAME)}
                 error={errors.name}
               />
             </div>
@@ -50,7 +48,7 @@ export const Register = () => {
               <FormInput
                 type="email"
                 placeholder={REGISTER_TEXTS.EMAIL_PLACEHOLDER}
-                registration={register("email", REGISTER_FORM.EMAIL)}
+                registration={register('email', REGISTER_FORM.EMAIL)}
                 error={errors.email}
               />
             </div>
@@ -58,7 +56,7 @@ export const Register = () => {
               <FormInput
                 type="password"
                 placeholder={REGISTER_TEXTS.PASSWORD_PLACEHOLDER}
-                registration={register("password", REGISTER_FORM.PASSWORD)}
+                registration={register('password', REGISTER_FORM.PASSWORD)}
                 error={errors.password}
                 showPasswordToggle
                 showPassword={showPassword}
@@ -71,7 +69,7 @@ export const Register = () => {
             <div className="text-center mt-4">
               <button
                 type="button"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate('/login')}
                 className="text-neutral-600 hover:text-neutral-800 text-sm"
               >
                 {REGISTER_TEXTS.LOGIN_PROMPT}

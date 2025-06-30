@@ -13,12 +13,12 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   label,
   icon,
   colorClasses,
-  size = 'md'
+  size = 'md',
 }) => {
   const sizeClasses = {
     sm: 'p-1.5',
     md: 'p-2',
-    lg: 'p-2.5'
+    lg: 'p-2.5',
   };
 
   return (
@@ -30,4 +30,4 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
       {icon}
     </button>
   );
-}; 
+};

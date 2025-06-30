@@ -13,4 +13,4 @@ export const useViewMode = (defaultMode: ViewMode = 'list') => {
     viewMode,
     toggleViewMode,
   };
-}; 
+};

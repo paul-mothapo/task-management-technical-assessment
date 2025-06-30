@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { LoginCredentials } from "@/types";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
-import { FormInput } from "@/components/forms/FormInput";
-import { LoadingButton } from "@/components/common/LoadingButton";
-import { LOGIN_FORM, LOGIN_TEXTS } from "@/constants/formConstants";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { LoginCredentials } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { FormInput } from '@/components/forms/FormInput';
+import { LoadingButton } from '@/components/common/LoadingButton';
+import { LOGIN_FORM, LOGIN_TEXTS } from '@/constants/formConstants';
 
 export const Login = () => {
   const {
@@ -23,7 +23,7 @@ export const Login = () => {
       setLoading(true);
       await login(data);
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
@@ -34,15 +34,13 @@ export const Login = () => {
       <div className="flex flex-col items-center mt-20">
         <div className="w-full bg-white rounded-lg p-8 flex flex-col items-center">
           <h1 className="text-2xl font-bold mb-2">{LOGIN_TEXTS.TITLE}</h1>
-          <p className="text-gray-600 text-center mb-6">
-            {LOGIN_TEXTS.SUBTITLE}
-          </p>
+          <p className="text-gray-600 text-center mb-6">{LOGIN_TEXTS.SUBTITLE}</p>
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
             <div className="mb-4">
               <FormInput
                 type="email"
                 placeholder={LOGIN_TEXTS.EMAIL_PLACEHOLDER}
-                registration={register("email", LOGIN_FORM.EMAIL)}
+                registration={register('email', LOGIN_FORM.EMAIL)}
                 error={errors.email}
               />
             </div>
@@ -50,7 +48,7 @@ export const Login = () => {
               <FormInput
                 type="password"
                 placeholder={LOGIN_TEXTS.PASSWORD_PLACEHOLDER}
-                registration={register("password", LOGIN_FORM.PASSWORD)}
+                registration={register('password', LOGIN_FORM.PASSWORD)}
                 error={errors.password}
                 showPasswordToggle
                 showPassword={showPassword}
@@ -63,7 +61,7 @@ export const Login = () => {
             <div className="text-center mt-4">
               <button
                 type="button"
-                onClick={() => navigate("/register")}
+                onClick={() => navigate('/register')}
                 className="text-neutral-600 hover:text-neutral-800 text-sm"
               >
                 {LOGIN_TEXTS.REGISTER_PROMPT}
