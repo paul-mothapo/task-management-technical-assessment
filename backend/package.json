@@ -1,6 +1,6 @@
 {
   "name": "task-management-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Backend for task management application",
   "main": "dist/server.js",
   "scripts": {
